@@ -1,45 +1,89 @@
 import bzBond from "@beezwax/bzbond-js";
 import "../scss/app.scss";
+import * as Plot from "@observablehq/plot";
 
-const main = document.createElement("main");
+bzBond.PerformScript("Get Innovation Timeline Data")
+  .then(result => {
+    const innovations = result.response.data.map(record =>
+      Object.keys(record.fieldData).reduce(
+        (accumulator, currentValue) => 
+        ({...accumulator, ...{[currentValue]: record.fieldData[currentValue]}}),
+        {}
+      )
+    );
 
-const heading = document.createElement("h1");
-heading.innerHTML = "bzBond";
+    const innoHist = innovations.reduce((acc, curr) => {
+      const newAcc = acc;
+      if(newAcc[curr.DEVELOPMENT_TIME]) {
+        newAcc[curr.DEVELOPMENT_TIME]++
+      } else {
+        newAcc[curr.DEVELOPMENT_TIME] = 1
+      }
+      return newAcc;
+    },
+    []);
 
-const subheading = document.createElement("h2");
-subheading.innerText = typeof bzBond === "function" ? "is working for you" : "is having issues";
+    const innoHistIndex = innoHist.map((value, index, array) => index);
 
-const logo = document.createElement("div");
-logo.classList.add("logo");
-logo.innerText = "∞";
+    console.log(innoHistIndex);
 
-const instruction = document.createElement("p");
-instruction.classList.add("instruction");
-const vsCodeButton = document.createElement("button");
-vsCodeButton.innerText = "Edit this project in VS Code";
-vsCodeButton.classList.add("launch-editor");
-fetch(document.location)
-  .then((response) => {
-    instruction.innerHTML = `Don't have VS Code? To update this page edit and save <span class="project-path">${response.headers.get("projectPath")}/src/js/index.js</span>.`;
-    vsCodeButton.addEventListener("click", () => {
-      window.open(`vscode://file/${response.headers.get("projectPath")}/`, '_blank');
-      window.open(`vscode://file/${response.headers.get("projectPath")}/src/js/index.js`, '_blank');
+    console.log(innoHist);
+
+    // Simple historgram showing development time for innovations
+    const histFmCalc = Plot.plot({
+      y: {
+        label: "Innovation Count"
+      },
+      x: {
+        label: "Years in development"
+      },
+      marks: [
+        Plot.barY(
+          innovations,
+          Plot.groupX(
+            {y: "count"},
+            {
+              x: "DEVELOPMENT_TIME",
+              fill: "goldenrod"
+            },
+          )
+        ),
+        Plot.text(innoHist, {x: innoHistIndex, y: innoHist, dy: -5})
+      ]
     });
-  });
 
-const learn = document.createElement("p");
-const learnLink = document.createElement("a");
-learnLink.setAttribute("href", "https://github.com/beezwax/bzBond");
-learnLink.setAttribute("target", "_blank");
-learnLink.innerText = `Learn bzBond`;
-learn.appendChild(learnLink);
+    const rectplot = Plot.barY(
+      innovations,
+      Plot.binX(
+        {y: "count"},
+        {
+          x: d => d.COMMERCIALIZATION_YEAR - d.DEVELOPMENT_START_YEAR,
+          fill: "DEVELOPMENTAL_COMPLEXITY"
+        }
+      )
+    )
+      .plot({color: {legend: true, type: "categorical"}});
 
-main.appendChild(heading);
-main.appendChild(subheading);
-main.appendChild(logo);
-if(window.location.hostname === "localhost") {
-  main.appendChild(vsCodeButton);
-  main.appendChild(instruction);
-}
-main.appendChild(learn);
-document.body.appendChild(main);
+    const rectplotSep = Plot.plot({
+      grid: true,
+      facet: {
+        data: innovations,
+        y: "DEVELOPMENTAL_COMPLEXITY"
+      },
+      marks:[
+        Plot.barY(
+          innovations,
+          Plot.binX(
+            {y: "count"},
+            {x: "DEVELOPMENT_TIME", fill: "DEVELOPMENTAL_COMPLEXITY"}
+          )
+        )
+      ]
+    });
+
+    document.body.appendChild(histFmCalc);
+
+    document.body.appendChild(rectplot);
+    document.body.appendChild(rectplotSep);
+  })
+
