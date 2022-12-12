@@ -24,3 +24,4 @@ section.appendChild(heading);
 document.body.appendChild(section);
 
 initObservablePlot();
+initChartJs();

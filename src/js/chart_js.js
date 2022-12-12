@@ -9,40 +9,32 @@ const init = async() => {
     "Historgram With Average Line????"
   ];
 
-  const select = document.querySelector("select");
-  if(select) {
-    select.remove();
-  }
-
-  if(!document.querySelector("[data-selectorType='chartJs']")) {
-    const thisButton = document.querySelector("[data-buttonType='chartJs']");
-    thisButton.classList.add("selected");
-    const otherButton = document.querySelector("[data-buttonType='observablePlot']");
-    otherButton.classList.remove("selected");
-    const chartJsSelector = document.createElement("select");
-    chartJsSelector.setAttribute("data-selectorType", "chartJs");
-    PLOT_MAP.forEach(plot => {
-      const option = document.createElement("option");
-      if(plot === null) {
-        option.value = ""
-        option.textContent = "Select visualization to display"
-      } else {
-        option.value = option.textContent = plot;
-      }
-      chartJsSelector.appendChild(option);
-    });
-    chartJsSelector.addEventListener("change", (e) => {
-      const plotIndex = PLOT_MAP.findIndex(plot => plot === e.target.value);
-      const main = document.querySelector("main");
-      main.textContent = "";
-      const canvas = document.createElement("canvas");
-      main.appendChild(canvas);
-      plots[plotIndex]()
-    });
-    const main = document.querySelector("main");
-    main.textContent = "";
-    document.body.insertBefore(chartJsSelector, main);
-  }
+  const section = document.querySelector("[data-section='chartJs']");
+  const chart = document.createElement("div");
+  const canvas = document.createElement("canvas");
+  const selector = document.createElement("select");
+  selector.setAttribute("data-selector", "chartJs");
+  PLOT_MAP.forEach(plot => {
+    const option = document.createElement("option");
+    if(plot === null) {
+      option.value = "";
+      option.disabled = true;
+      option.selected = true;
+      option.textContent = "Select visualization to display";
+    } else {
+      option.value = option.textContent = plot;
+    }
+    selector.appendChild(option);
+  });
+  selector.addEventListener("change", (e) => {
+    const plotIndex = PLOT_MAP.findIndex(plot => plot === e.target.value);
+    const canvas = section.querySelector("canvas");
+    canvas.textContent = "";
+    plots[plotIndex]()
+  });
+  section.appendChild(selector);
+  section.appendChild(chart);
+  chart.appendChild(canvas);
 
   const fmResult = await bzBond.PerformScript("Get Innovation Development Time Data");
 
@@ -54,6 +46,8 @@ const init = async() => {
     )
   );
 
+  let jsChart;
+
   const maxDevTime = Math.max(...innovations.map(innovation => innovation.DEVELOPMENT_TIME));
   const labels = []
   for (let index = 0; index <= maxDevTime; index++) {
@@ -62,7 +56,10 @@ const init = async() => {
 
   plots[1] = () => {
     const counts = labels.map(label => 0);
-    new Chart(
+    if (jsChart) {
+      jsChart.destroy()
+    }
+    jsChart = new Chart(
       document.querySelector("canvas"),
       {
         type: 'bar',
@@ -90,7 +87,7 @@ const init = async() => {
           scales: {
             xAxis: {
               title: {
-                text: "Development Time",
+                text: "Years in Development",
                 display: true
               }
             },
@@ -108,7 +105,10 @@ const init = async() => {
 
   plots[2] = () => {
     const counts = labels.map(label => 0);
-    new Chart(
+    if (jsChart) {
+      jsChart.destroy()
+    }
+    jsChart = new Chart(
       document.querySelector("canvas"),
       {
         type: 'bar',
