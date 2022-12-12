@@ -38,13 +38,7 @@ const init = async() => {
 
   const fmResult = await bzBond.PerformScript("Get Innovation Development Time Data");
 
-  const innovations = fmResult.response.data.map(fmDapiRecord =>
-    Object.keys(fmDapiRecord.fieldData).reduce(
-      (plotRecord, fmDapiField) => 
-      ({...plotRecord, ...{[fmDapiField]: fmDapiRecord.fieldData[fmDapiField]}}),
-      {}
-    )
-  );
+  const innovations = fmResult.response.data.map(fmDapiRecord => fmDapiRecord.fieldData);
 
   let jsChart;
 
