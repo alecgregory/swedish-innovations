@@ -41,9 +41,27 @@ In the words of its creator [Obversable Plot](https://observablehq.com/@observab
 For me, observable plot is a good fit because it
 
 - Has a gentler learning curve than D3
-- Requires less JavaScript code (key concept: just enough JavaScript)
+- Requires the developer to write less JavaScript code (key concept: just enough JavaScript)
 - Includes D3, allowing you to dip into more advanced features if necessary
 - Has a [helpful community forum](https://talk.observablehq.com/) that  provides support.
+
+#### Observable/Plot technical notes
+
+- Generates svgs which you can then render in the DOM (And, as we will see, manipulate)
+
+### Chart JS
+
+Chart JS is the big fish. It's by far the most popular charting library for JavaScript developers.
+
+- It's well maintained
+- It's so popular you can just Google questions/issues
+- Like d3, it has gone through several versions, so finding up to date answers/learning materials is sometimes challenging
+
+#### Chart JS technical notes
+
+- Binds to a pre-existing canvas element in the DOM
+- Canvas does not allow the same element based manipulation as svg, so "hacking" a visualization is a little harder and styling is done through configuration rather than css.
+- Plugin-based architecture to handle custom charts and styles
 
 ## Creating visualizations with Observable/Plot
 
@@ -224,14 +242,109 @@ Plot.plot({
 - There is an artifactual complexity field. We can hyptothesize that the greater the artifactual complexity the longer an innovation will take to develop.
 - We can test this by showing
 
+## Creating visualizations with Chart JS
 
+- Although we have been working mainly in observable/plot. I wanted to show how we could approach the same task in Chart JS. I have not got as far with this library but we will see the key differences, which will hopefully help you to build a decision making roadmap for your own work.
+- The good news is that we can use exactly the same data as we did for observable plot and go straight into the specifics of chart JS
 
+### Chart JS Histogram
 
+- So now we have our data ready to visualize, let's do some initial exploration.
+- To get a feel for the data, I'd like to plot innovation development time on a histogram.
+- In observable/plot we do this by displaying channels on a scale. Channels are a combination or geometric shapes (marks) and data that display on a scale.
+- We will build up channels in our histogram to see this in action.
 
+#### Simple histogram
 
+- The first thing to say is that the is no obvious path for generating a histogram from our data as it is formatter. However, with data manipulation we can get what we need:
 
+```
+const labels = Array.from(
+  new Set(innovations.map(inno => inno.DEVELOPMENT_TIME))
+).sort((a, b) => {
+  if (a > b) {
+    return 1;
+  } else if (a < b) {
+    return -1;
+  } else {
+    return 0;
+  }
+});
+const counts = labels.map(label => 0);
+const data = innovations.reduce((acc, curr) => {
+  const newArray = [...acc];
+  const position = labels.findIndex(label => label === curr.DEVELOPMENT_TIME);
+  newArray[position]++;
+  return newArray;
+}, counts);
+```
 
+- While this was not hugely difficult thing to do, this suggests to me that data structure is perhaps a little less integral to chart js, and therefore your structure is more likely to require handling outside the library, than with observable/plot. Although we did see that a bit in the later stages of observable plot too.
 
+- The code below is a little more verbose than for observable/plot. Chart JS is highly configurable, and its config handling follows good practices. However even our basic case needs quite a lot of config.
+- The other thing to mention is that we have already spent quite a few lines of code defining our data above, which reduces the amount of code that we need in the chart generating function below. 
+- Note that one area that doesn't necessarily need to be here but I wanted to highlight: `options.plugins.tooltip.enabled`. The tooltip is enabled by default, but unintuitively the toggle is under the `options.plugins` property. This shows that they are serious when they say have a plugin-base architecture.
+- In general I've found that libraries based on plugins tend to favor more experienced devs who can understand and author plugins. For others, having a largely self-contained ecosystem can be reassuring  
 
+```
+() => {
+  jsChart = new Chart(
+    document.querySelector("canvas"),
+    {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Count',
+            data,
+            xAxisID: 'xAxis',
+            yAxisID: 'yAxis'
+          }
+        ]
+      },
+      options: {
+        plugins: {
+          tooltip: {
+            enabled: true
+          }
+        },
+        scales: {
+          xAxis: {
+            title: {
+              text: "Years in Development",
+              display: true
+            }
+          },
+          yAxis: {
+            title: {
+              text: "Innovation Count",
+              display: true
+            }
+          }
+        }
+      }
+    }
+  );
+}
+```
 
+#### Chart JS additional details: Running out of road?
+
+- As you can see from the next example, I did not manage to show a rule with the average in the chart js chart. I expect it is possible but I did not have as much time with chart js and wasn't able to find out how in the docs or online.
+- That being said, the "channel" concept in observable/plot did help guide me so that's probably a +1 for observable/plot
+- So either chart js is limited or I am!
+
+## Conclusions
+
+There are key concepts and techniques that will help you on your FileMaker data visualization journey whichever library you decide to use:
+
+### FileMaker
+
+- Execute Data API
+- Code management (bzBond can help)
+
+### JavaScript
+
+- Array methods, especially `map` and `reduce`
 

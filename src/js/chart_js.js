@@ -48,14 +48,26 @@ const init = async() => {
 
   let jsChart;
 
-  const maxDevTime = Math.max(...innovations.map(innovation => innovation.DEVELOPMENT_TIME));
-  const labels = []
-  for (let index = 0; index <= maxDevTime; index++) {
-    labels.push(index)
-  }
+  const labels = Array.from(
+    new Set(innovations.map(inno => inno.DEVELOPMENT_TIME))
+  ).sort((a, b) => {
+    if (a > b) {
+      return 1;
+    } else if (a < b) {
+      return -1;
+    } else {
+      return 0;
+    }
+  });
+  const counts = labels.map(label => 0);
+  const data = innovations.reduce((acc, curr) => {
+    const newArray = [...acc];
+    const position = labels.findIndex(label => label === curr.DEVELOPMENT_TIME);
+    newArray[position]++;
+    return newArray;
+  }, counts);
 
   plots[1] = () => {
-    const counts = labels.map(label => 0);
     if (jsChart) {
       jsChart.destroy()
     }
@@ -64,15 +76,11 @@ const init = async() => {
       {
         type: 'bar',
         data: {
-          labels: labels,
+          labels,
           datasets: [
             {
               label: 'Count',
-              data: innovations.reduce((acc, curr) => {
-                const newArray = [...acc];
-                newArray[curr.DEVELOPMENT_TIME]++
-                return newArray;
-              }, counts),
+              data,
               xAxisID: 'xAxis',
               yAxisID: 'yAxis'
             }
@@ -104,7 +112,6 @@ const init = async() => {
   }
 
   plots[2] = () => {
-    const counts = labels.map(label => 0);
     if (jsChart) {
       jsChart.destroy()
     }

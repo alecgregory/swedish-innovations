@@ -33,7 +33,6 @@ const init = async() => {
     const plotIndex = PLOT_MAP.findIndex(plot => plot === e.target.value);
     const chart = section.querySelector("div");
     chart.textContent = "";
-    console.log(plotIndex);
     chart.appendChild(plots[plotIndex])
     if(plotIndex === 5) {
       const propotionLabels = document.querySelectorAll('[font-variant="tabular-nums"]')[1];
@@ -45,7 +44,6 @@ const init = async() => {
     }
     if(plotIndex === 6) {
       const facets = document.querySelectorAll('[aria-label="facet"]');
-      console.log(facets);
       facets.forEach(facet => {
         const propotionLabels = facet.querySelectorAll('[font-variant="tabular-nums"]')[0];
         propotionLabels.querySelectorAll("text:not([data-converted])").forEach(proportion => {
