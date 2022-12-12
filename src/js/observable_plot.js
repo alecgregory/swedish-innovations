@@ -9,7 +9,8 @@ const init = async() => {
     "Historgram With Average Rule",
     "Historgram With Count Labels",
     "Historgram With Proportion Labels",
-    "Historgram With Percentage Labels"
+    "Historgram With Percentage Labels",
+    "Facet Example: Development complexity"
   ];
 
   const section = document.querySelector("[data-section='observablePlot']");
@@ -32,6 +33,7 @@ const init = async() => {
     const plotIndex = PLOT_MAP.findIndex(plot => plot === e.target.value);
     const chart = section.querySelector("div");
     chart.textContent = "";
+    console.log(plotIndex);
     chart.appendChild(plots[plotIndex])
     if(plotIndex === 5) {
       const propotionLabels = document.querySelectorAll('[font-variant="tabular-nums"]')[1];
@@ -40,6 +42,18 @@ const init = async() => {
         proportion.textContent = `${percentage.toFixed(0)}%`;
         proportion.setAttribute("data-converted", "");
       })
+    }
+    if(plotIndex === 6) {
+      const facets = document.querySelectorAll('[aria-label="facet"]');
+      console.log(facets);
+      facets.forEach(facet => {
+        const propotionLabels = facet.querySelectorAll('[font-variant="tabular-nums"]')[0];
+        propotionLabels.querySelectorAll("text:not([data-converted])").forEach(proportion => {
+          const percentage = +proportion.textContent * 100;
+          proportion.textContent = `${percentage.toFixed(0)}%`;
+          proportion.setAttribute("data-converted", "");
+        })}
+      )
     }
   });
   section.appendChild(selector);
@@ -218,10 +232,6 @@ const init = async() => {
       Plot.barY(
         innovations,
         groupByDevelopmentTime( null, { fill: "DEVELOPMENTAL_COMPLEXITY" })
-      ),
-      Plot.ruleX(
-        innovations,
-        {x: "DEVELOPMENT_TIME", stroke: "red", transform: transformAverageDevTime}
       ),
       Plot.text(
         [getAverageDevelopmentTime(innovations)],
