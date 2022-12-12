@@ -10,15 +10,15 @@
 ### Structure
 
 - We will briefly go over the built-in FileMaker tools that we can use to do the visualizations.
-- We will briefly look at tool selection, comparing d3 and Observable/Plots
+- We will briefly look at tool selection, comparing d3, Observable/Plot, and chart JS.
 - In the main part of the presentation we will walk through creating visualizations based on the Swedish Innovations data that Frank has provided
 
 ## The FileMaker tools
 
 There are three key tools that support FileMaker 19 web integrations
-- The `FileMaker.PerformScripWithOption` function available in FileMaker web viewers
-- The `Perform JavaScript in Web Viewer` script step
-- The `Execute FileMaker Data API` script step
+- The [`FileMaker.PerformScripWithOption`](https://help.claris.com/en/pro-help/content/scripting-javascript-in-web-viewers.html) function available in FileMaker web viewers
+- The [`Perform JavaScript in Web Viewer`](https://help.claris.com/en/pro-help/content/perform-javascript-in-web-viewer.html?Highlight=perform%20javascript%20in%20web%20viewer) script step
+- The [`Execute FileMaker Data API`](https://help.claris.com/en/pro-help/content/execute-filemaker-data-api.html?Highlight=Execute%20FileMaker%20Data%20API) script step
 
 ## Tool selection
 
@@ -65,7 +65,7 @@ Chart JS is the big fish. It's by far the most popular charting library for Java
 
 ## Creating visualizations with Observable/Plot
 
-- In this main section of the talk we will build some visualizations with FileMaker and Observable Plot.
+- In this main section of the talk we will build a visualizations with FileMaker and Observable Plot.
 - You will see a lot of FileMaker and JavaScript patterns and concepts in this section. If you find something interesting (or unclear), feel free to stop me and I'll go into more detail.
 - The main focus areas are
   - The management of data flow between FileMaker and the web viewer
@@ -83,7 +83,7 @@ Chart JS is the big fish. It's by far the most popular charting library for Java
 
 - Before we can start creating visualizations, our FileMaker web viewer needs to be able to get data from our FileMaker tables
 - There are many ways we could do this. I am using a technique that I call "self-contained layout"
-- The core of this technique is the `Execute FileMaker Data API` script step. This converts FileMaker data into JSON which can easily handled by JavaScript functions.
+- The core of this technique is the `Execute FileMaker Data API` script step. This converts FileMaker data into JSON which can be easily handled by JavaScript functions.
 
 #### Self-contained layout technique
 
@@ -244,19 +244,15 @@ Plot.plot({
 
 ## Creating visualizations with Chart JS
 
-- Although we have been working mainly in observable/plot. I wanted to show how we could approach the same task in Chart JS. I have not got as far with this library but we will see the key differences, which will hopefully help you to build a decision making roadmap for your own work.
+- I want to also bring in chart js here, as a point of comparison. I'm afriad it will get a bit of a raw deal from me as I've not spent as much time in it as observable/plot, but I think it's big enough to handle itself.
+- So let's see what we need to change if we want to achieve a similar data visualization in Chart JS. As I say, I have not got as far with this library but we will see the key differences, which will hopefully help you to build a decision making roadmap for your own work.
 - The good news is that we can use exactly the same data as we did for observable plot and go straight into the specifics of chart JS
 
 ### Chart JS Histogram
 
-- So now we have our data ready to visualize, let's do some initial exploration.
-- To get a feel for the data, I'd like to plot innovation development time on a histogram.
-- In observable/plot we do this by displaying channels on a scale. Channels are a combination or geometric shapes (marks) and data that display on a scale.
-- We will build up channels in our histogram to see this in action.
-
 #### Simple histogram
 
-- The first thing to say is that the is no obvious path for generating a histogram from our data as it is formatter. However, with data manipulation we can get what we need:
+- The first thing to say is that the is no obvious path for generating a histogram from our data as it is formatted. However, with data manipulation we can get what we need:
 
 ```
 const labels = Array.from(
@@ -279,12 +275,9 @@ const data = innovations.reduce((acc, curr) => {
 }, counts);
 ```
 
-- While this was not hugely difficult thing to do, this suggests to me that data structure is perhaps a little less integral to chart js, and therefore your structure is more likely to require handling outside the library, than with observable/plot. Although we did see that a bit in the later stages of observable plot too.
+- While creating the data was not too difficult, the fact that we have to do it all suggests to me that data structure is perhaps a little less integral to chart js, and therefore your structure is more likely to require handling outside the library. Data processing is often necessary but it seems to have some in earlier with chart js than observable/plot.
 
-- The code below is a little more verbose than for observable/plot. Chart JS is highly configurable, and its config handling follows good practices. However even our basic case needs quite a lot of config.
-- The other thing to mention is that we have already spent quite a few lines of code defining our data above, which reduces the amount of code that we need in the chart generating function below. 
-- Note that one area that doesn't necessarily need to be here but I wanted to highlight: `options.plugins.tooltip.enabled`. The tooltip is enabled by default, but unintuitively the toggle is under the `options.plugins` property. This shows that they are serious when they say have a plugin-base architecture.
-- In general I've found that libraries based on plugins tend to favor more experienced devs who can understand and author plugins. For others, having a largely self-contained ecosystem can be reassuring  
+- The code below generates the visualuation. It is a little more verbose than for observable/plot. Chart JS is highly configurable, and its config handling follows good practices. However even our basic case needs quite a lot of config.
 
 ```
 () => {
@@ -328,12 +321,14 @@ const data = innovations.reduce((acc, curr) => {
   );
 }
 ```
+- The other thing to mention is that we have already spent quite a few lines of code defining our data above, which reduces the amount of code that we need in the chart generating function below. 
+- Note that one area that doesn't necessarily need to be here but I wanted to highlight: `options.plugins.tooltip.enabled`. The tooltip is enabled by default, but unintuitively the toggle is under the `options.plugins` property. This shows that they are serious when they say have a plugin-base architecture.
+- In general I've found that libraries based on plugins tend to favor more experienced devs who can understand and author plugins. For those less-experienced, having a largely self-contained ecosystem can be reassuring 
 
 #### Chart JS additional details: Running out of road?
 
-- As you can see from the next example, I did not manage to show a rule with the average in the chart js chart. I expect it is possible but I did not have as much time with chart js and wasn't able to find out how in the docs or online.
+- As you can see from this next example, I did not manage to show a rule with the average in chart js. I expect it is possible but I did not have as much time with chart js and wasn't able to find out how in the docs or online.
 - That being said, the "channel" concept in observable/plot did help guide me so that's probably a +1 for observable/plot
-- So either chart js is limited or I am!
 
 ## Conclusions
 
@@ -342,9 +337,10 @@ There are key concepts and techniques that will help you on your FileMaker data 
 ### FileMaker
 
 - Execute Data API
-- Code management (bzBond can help)
+- Web code management (bzBond can help)
+- Just enough FileMaker
 
 ### JavaScript
 
 - Array methods, especially `map` and `reduce`
-
+- Just enough JavaScript
